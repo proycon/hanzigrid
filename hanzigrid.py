@@ -102,23 +102,28 @@ def hanzigrid(**kwargs):
             print("NOTICE: hanzi in HSK " + str(item["level"]) + " but not in input (this is no problem): ", hanzi,file=sys.stderr)
 
 
+    datafile =  open(OUTPUTPREFIX+".json",'w',encoding='utf-8')
+    datafile.write("[")
+
     eof = False
-    c = None
     if not ROWS:
         c = svgwrite.Drawing(filename=OUTPUTPREFIX+".svg", profile="tiny")
+    else:
+        c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_1.svg", profile="tiny")
     row = 0
-    page = 0
+    page = 1 if ROWS else 0
     while True:
         row += 1
-        if ROWS and (row-1) % ROWS == 0:
+        if ROWS and row > ROWS:
+            row = 1
             page += 1
+            print("PAGE " + str(page),file=sys.stderr)
             if c:
                 c.save()
                 c = None
             c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_" + str(page) + ".svg", profile="tiny")
-        begin = (row-1) * COLS
+        begin = ((page-1)*ROWS*COLS) + (row-1) * COLS
         end = begin + COLS
-        print(begin, end,file=sys.stderr)
         for col, index in enumerate(range(begin, end)):
             item = data[index]
             if hanzi in hskdata:
@@ -126,7 +131,10 @@ def hanzigrid(**kwargs):
                     item['words'] = hskdata[hanzi]['words']
                 if hskdata[hanzi]["alt"]:
                     item['alt'] = hskdata[hanzi]['alt']
-            print(item,file=sys.stderr)
+            item['seqnr'] = index
+            item['row'] = row
+            item['page'] = page
+            print(item,file=datafile)
             if hanzi in hskdata:
                 if 'words' in item: del item['words']
                 if 'alt' in item: del item['alt']
@@ -177,6 +185,7 @@ def hanzigrid(**kwargs):
 
     if c:
         c.save()
+    datafile.write("]")
 
 
 if __name__ == '__main__':
