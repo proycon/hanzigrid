@@ -32,7 +32,7 @@ def loadhsk(**kwargs):
                         pinyin.append( pinyin_dec.fix_pinyin_word(fields[2][begin:i+1]))
                         begin = i+1
                 if len(tones) != len(fields[index]):
-                    tones = len(fields[index]) * [0]
+                    tones = len(fields[index]) * [5]
                 hskwords[fields[index]] = {
                     "hanzi": fields[index],
                     "pinyin": fields[3],
@@ -40,6 +40,7 @@ def loadhsk(**kwargs):
                     "description": fields[4],
                 }
                 for hanzi, alt, tone,singlepinyin in zip(fields[index], fields[altindex], tones, pinyin):
+                    singlepinyin = singlepinyin.strip("' ")
                     if hanzi not in hskdata:
                         hskdata[hanzi] = {
                             "tone": tone,
@@ -49,9 +50,13 @@ def loadhsk(**kwargs):
                             "alt": alt if alt != hanzi else ""
                         }
                     else:
-                        if hskdata[hanzi]['tone'] in (0,5):
+                        if hskdata[hanzi]['tone'] == 5:
                             hskdata[hanzi]['tone'] = tone
                             hskdata[hanzi]['pinyin'] = singlepinyin
+                        elif tone != 5 and (hskdata[hanzi]['tone'] != tone or singlepinyin not in hskdata[hanzi]['pinyin'].split('/')):
+                            hskdata[hanzi]['tone'] = 0
+                            if singlepinyin not in hskdata[hanzi]['pinyin'].split('/'):
+                                hskdata[hanzi]['pinyin'] += "/" + singlepinyin
                         hskdata[hanzi]['words'].append(fields[index])
     return hskdata, hskwords
 
@@ -137,7 +142,7 @@ def hanzigrid(**kwargs):
                 width: 90%;
                 opacity: 0.9;
                 border: 2px black solid;
-                font-size: 24px;
+                font-size: 2em;
             }}
             #hanzi {{
                 width: 100%;
@@ -200,6 +205,7 @@ function showinfo(event) {{
             var cls = "pinyin";
             if (!infopinyin) cls += " hidden";
             words += "<span class='" + cls + "' id='pinyin" + j + "'> - " + worddata.pinyin + "</span>";
+            var cls = "description";
             if (!infotranslation) cls += " hidden";
             words += "<span class='" + cls + "' id='description" + j +"'> - " + worddata.description + "</span>";
             words += "<br/>";
