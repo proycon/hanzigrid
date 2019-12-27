@@ -150,6 +150,12 @@ def hanzigrid(**kwargs):
                font-size: 50%;
                font-weight: normal;
             }}
+            #info .description {{
+                font-style: italic;
+            }}
+            #info .hidden {{
+                visibility: hidden;
+            }}
             #words {{
                 color: #666;
             }}
@@ -190,23 +196,25 @@ function showinfo(event) {{
         var words = "";
         for (j = 0; j < data[i].words.length; j++) {{
             worddata = hskwords[data[i].words[j]];
-            words += "<span class='level'>(" + worddata.level + ")</span> <span class='hanzi'>" + worddata.hanzi + "</span>";
-            if (infopinyin) {{
-                words += "- " + worddata.pinyin;
-            }}
-            if (infotranslation) {{
-                words += " - <em>" + worddata.description + "</em>";
-            }}
+            words += "<span class='level'>(" + worddata.level + ")</span> <span class='hanzi' onclick='showextra(" + j + "); event.stopPropagation();'>" + worddata.hanzi + "</span>";
+            var cls = "pinyin";
+            if (!infopinyin) cls += " hidden";
+            words += "<span class='" + cls + "' id='pinyin" + j + "'> - " + worddata.pinyin + "</span>";
+            if (!infotranslation) cls += " hidden";
+            words += "<span class='" + cls + "' id='description" + j +"'> - " + worddata.description + "</span>";
             words += "<br/>";
         }}
         $('#words').html(words);
-        //$('#info').css('left', event.x);
-        //$('#info').css('top', event.y);
         $("#info").show();
 }};
 
-infopinyin=true;
-infotranslation=true;
+function showextra(i) {{
+    $("#pinyin" + i).removeClass("hidden");
+    $("#description" + i).removeClass("hidden");
+}}
+
+infopinyin=false;
+infotranslation=false;
 
 $(function() {{
     $('#infopinyin').click(function() {{
@@ -331,7 +339,7 @@ $(function() {{
     datafile.write("];\n")
     html.write("""
 <div class="buttons">
-Info: pinyin? <input type="checkbox" id="infopinyin" name="infopinyin" checked="checked" /> | translations? <input type="checkbox" id="infotranslation" name="infotranslation" checked="checked" />
+Info: pinyin? <input type="checkbox" id="infopinyin" name="infopinyin" /> | translations? <input type="checkbox" id="infotranslation" name="infotranslation" />
 </div>
 """)
     html.write("</body>")
