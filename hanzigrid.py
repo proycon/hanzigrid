@@ -4,12 +4,15 @@ import sys
 import svgwrite
 import pinyin_dec
 import unicodedata
+import json
+import argparse
 
 def strip_accents(s):
    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
 def loadhsk(**kwargs):
     hskdata = {}
+    hskwords = {}
     if kwargs.get("traditional"):
         index = 1
         altindex = 0
@@ -30,25 +33,31 @@ def loadhsk(**kwargs):
                         begin = i+1
                 if len(tones) != len(fields[index]):
                     tones = len(fields[index]) * [0]
-                for hanzi, alt, tone,pinyin in zip(fields[index], fields[altindex], tones, pinyin):
+                hskwords[fields[index]] = {
+                    "hanzi": fields[index],
+                    "pinyin": fields[3],
+                    "level": level,
+                    "description": fields[4],
+                }
+                for hanzi, alt, tone,singlepinyin in zip(fields[index], fields[altindex], tones, pinyin):
                     if hanzi not in hskdata:
                         hskdata[hanzi] = {
                             "tone": tone,
                             "level": level,
-                            "pinyin": pinyin.strip(),
+                            "pinyin": singlepinyin.strip(),
                             "words": [fields[index]],
                             "alt": alt if alt != hanzi else ""
                         }
                     else:
                         if hskdata[hanzi]['tone'] in (0,5):
                             hskdata[hanzi]['tone'] = tone
-                            hskdata[hanzi]['pinyin'] = pinyin
+                            hskdata[hanzi]['pinyin'] = singlepinyin
                         hskdata[hanzi]['words'].append(fields[index])
-    return hskdata
+    return hskdata, hskwords
 
 
 def hanzigrid(**kwargs):
-    hskdata = loadhsk(**kwargs)
+    hskdata, hskwords = loadhsk(**kwargs)
     COLS = kwargs['columns']
     ROWS = kwargs['rows']
     WORDS = not kwargs.get('nowords')
@@ -62,6 +71,9 @@ def hanzigrid(**kwargs):
         CELLHEIGHT = CELLWIDTH + CELLWIDTH / 2
     else:
         CELLHEIGHT = CELLWIDTH
+    WIDTH = COLS * CELLWIDTH
+    if ROWS:
+        HEIGHT = ROWS * CELLHEIGHT
     TONECOLOR = {
         0: "#000", #used for unknown/ambiguous tones (multiple readings)
         1: "#800",
@@ -102,14 +114,144 @@ def hanzigrid(**kwargs):
             print("NOTICE: hanzi in HSK " + str(item["level"]) + " but not in input (this is no problem): ", hanzi,file=sys.stderr)
 
 
-    datafile =  open(OUTPUTPREFIX+".json",'w',encoding='utf-8')
-    datafile.write("[")
+    html =  open(OUTPUTPREFIX+".html",'w',encoding='utf-8')
+    html.write(f"""<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Hanzi Grid</title>
+        <meta name="generator" content="hanzigrid" />
+        <meta charset="utf-8" />
+        <style>
+            object {{
+                margin: 0px;
+                padding: 0px;
+                width: 100%;
+                height: 100%;
+            }}
+            #info {{
+                position: fixed;
+                background: white;
+                display: none;
+                top: 25px;
+                left: 25px;
+                width: 90%;
+                opacity: 0.9;
+                border: 2px black solid;
+                font-size: 24px;
+            }}
+            #hanzi {{
+                width: 100%;
+                text-align: center;
+                background: black;
+                color: white;
+                font-weight: bold;
+            }}
+            #info .level {{
+               font-size: 50%;
+               font-weight: normal;
+            }}
+            #words {{
+                color: #666;
+            }}
+            #words .hanzi {{
+                color: black;
+            }}
+        </style>
+        <script src="{OUTPUTPREFIX}.js"></script>
+        <script
+          src="https://code.jquery.com/jquery-3.4.1.min.js"
+          integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+          crossorigin="anonymous"></script>
+        <script>
+function initpage(page) {{
+    if (data == null) {{
+        window.setTimeout(function(){{initpage(page)}}, 500);
+        return;
+    }}
+    var i = 0;
+    for (i = 0; i < data.length; i++) {{
+        var page = $('#page' + data[i].page)[0];
+        // Get the SVG document inside the Object tag
+        var svgdoc = page.contentDocument;
+        // Get the hanzi by ID
+        var hanzi = svgdoc.getElementById("h" + i);
+        if (hanzi !== null) {{
+            hanzi.index = i;
+            hanzi.addEventListener("click", showinfo, false);
+        }}
+    }}
+}};
+
+function showinfo(event) {{
+        var i = event.currentTarget.index;
+        $('#hanzi').html(data[i].hanzi + " <span class='level'>(HSK" + data[i].level + ")</span>");
+        $('#pinyin').html(data[i].pinyin);
+        $('#description').html(data[i].description);
+        var words = "";
+        for (j = 0; j < data[i].words.length; j++) {{
+            worddata = hskwords[data[i].words[j]];
+            words += "<span class='level'>(" + worddata.level + ")</span> <span class='hanzi'>" + worddata.hanzi + "</span>";
+            if (infopinyin) {{
+                words += "- " + worddata.pinyin;
+            }}
+            if (infotranslation) {{
+                words += " - <em>" + worddata.description + "</em>";
+            }}
+            words += "<br/>";
+        }}
+        $('#words').html(words);
+        //$('#info').css('left', event.x);
+        //$('#info').css('top', event.y);
+        $("#info").show();
+}};
+
+infopinyin=true;
+infotranslation=true;
+
+$(function() {{
+    $('#infopinyin').click(function() {{
+        if ($('#infopinyin').is(':checked')) {{
+            infopinyin = true;
+        }} else {{
+            infopinyin = false;
+        }}
+        if ($('#infotranslation').is(':checked')) {{
+            infotranslation = true;
+        }} else {{
+            infotranslation = false;
+        }}
+    }});
+}});
+    </script>
+    </head>
+    <body>
+<div id="info" onclick="$('#info').hide();">
+    <div id="hanzi">
+    </div>
+    <div id="pinyin">
+    </div>
+    <div id="description">
+    </div>
+    <div id="level">
+    </div>
+    <div id="description">
+    </div>
+    <div id="words">
+    </div>
+</div>
+""")
+
+    datafile =  open(OUTPUTPREFIX+".js",'w',encoding='utf-8')
+    datafile.write("hskwords = " + json.dumps(hskwords, ensure_ascii=False) + "\n")
+    datafile.write("data = [")
 
     eof = False
     if not ROWS:
         c = svgwrite.Drawing(filename=OUTPUTPREFIX+".svg", profile="tiny")
+        html.write("<object type=\"image/svg+xml\" data=\"" + OUTPUTPREFIX + ".svg\" id=\"page1\" onload=\"initpage(1)\"></object>\n")
     else:
-        c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_1.svg", profile="tiny")
+        c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_1.svg", viewBox=("0 0 %d %d" % (WIDTH,HEIGHT)), profile="tiny")
+        html.write("<object type=\"image/svg+xml\" data=\"" + OUTPUTPREFIX + "_1.svg\" id=\"page1\" onload=\"initpage(1)\"></object>\n")
     row = 0
     page = 1 if ROWS else 0
     while True:
@@ -121,11 +263,13 @@ def hanzigrid(**kwargs):
             if c:
                 c.save()
                 c = None
-            c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_" + str(page) + ".svg", profile="tiny")
+            c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_" + str(page) + ".svg", viewBox=("0 0 %d %d" % (WIDTH,HEIGHT)), profile="tiny")
+            html.write("<object type=\"image/svg+xml\" data=\"" + OUTPUTPREFIX + "_" + str(page) + ".svg\" id=\"page" + str(page) + "\" onload=\"initpage(" + str(page) + ")\"></object>\n")
         begin = ((page-1)*ROWS*COLS) + (row-1) * COLS
         end = begin + COLS
         for col, index in enumerate(range(begin, end)):
             item = data[index]
+            hanzi = item['hanzi']
             if hanzi in hskdata:
                 if hskdata[hanzi]["words"]:
                     item['words'] = hskdata[hanzi]['words']
@@ -134,7 +278,7 @@ def hanzigrid(**kwargs):
             item['seqnr'] = index
             item['row'] = row
             item['page'] = page
-            print(item,file=datafile)
+            print(json.dumps(item,ensure_ascii=False) + ",",file=datafile)
             if hanzi in hskdata:
                 if 'words' in item: del item['words']
                 if 'alt' in item: del item['alt']
@@ -157,8 +301,7 @@ def hanzigrid(**kwargs):
                     c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill="#ffb"))
                 if item["level"] == 4:
                     c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill="#ddd"))
-            hanzi = item["hanzi"]
-            c.add(c.text(hanzi, insert=(x,y), font_family=FONT,font_size=fontsize, fill=color, stroke=color,stroke_width=1))
+            c.add(c.text(hanzi, insert=(x,y), font_family=FONT,font_size=fontsize, fill=color, stroke=color,stroke_width=1,id="h"+ str(index)))
             subfontsize = fontsize / 2.8
             if PINYIN and hanzi in hskdata and hskdata[hanzi]["pinyin"]:
                 c.add(c.text(hskdata[hanzi]["pinyin"], insert=(x,y+(subfontsize*0.25)+subfontsize), font_family=FONT,font_size=subfontsize, fill=color, stroke=color,stroke_width=0,font_weight="normal"))
@@ -185,11 +328,17 @@ def hanzigrid(**kwargs):
 
     if c:
         c.save()
-    datafile.write("]")
+    datafile.write("];\n")
+    html.write("""
+<div class="buttons">
+Info: pinyin? <input type="checkbox" id="infopinyin" name="infopinyin" checked="checked" /> | translations? <input type="checkbox" id="infotranslation" name="infotranslation" checked="checked" />
+</div>
+""")
+    html.write("</body>")
+    html.write("</html>")
 
 
 if __name__ == '__main__':
-    import argparse
     parser = argparse.ArgumentParser(description="Create a hanzi learning grid", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--font', type=str,help="The font", action='store',default="sans")
     parser.add_argument('-o','--outputprefix', type=str,help="Output prefix", action='store',default="hanzigrid")
