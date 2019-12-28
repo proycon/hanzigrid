@@ -1,32 +1,35 @@
 Hanzi Grids
 ===============
 
-A hanzi grid is a study grid or matrix or matrices of chinese characters along with (optionally) pinyin and/or words
+A hanzi grid is a study grid or matrix of chinese characters along with (optionally) pinyin and/or words
 from the HSK levels. In this repository you will find various study grids, as well as the ``hanzigrid`` tool that
-generated them, and the raw input data from which they were generated. This means you can make your own hanzi grids.
+generated them, and the raw input data from which they were generated. This means you can make your own hanzi grids!
 
-An example hanzi grid is shown below:
+A full example hanzi grid is shown below:
 
 
 .. image:: https://raw.githubusercontent.com/proycon/hanzigrid/master/hanzigrid.png
     :alt: an example hanzigrid
 
-There is also an interactive web-based variant where you can click hanzi to see words with that hanzi, and the pinyin and translations:
+There is also an interactive web-based variant of thee grids where you can click hanzi to see words with that hanzi, and the pinyin and translations:
 
 .. image:: https://raw.githubusercontent.com/proycon/hanzigrid/master/hanzigrid_interactive.png
     :alt: an example hanzigrid
 
-One available hanzi grid configuration is my own so-called "confusible" ordering, as featured in both of the above
-previews, here I manually attempted to group hanzi that look somewhat similar, (like 牛 and 午)  and are therefore
-easily confused. Having these in a grid enables a horizontal learning method where you can immediately judge a hanzi in
-a context of similar ones.  This is a fairly subjective ordering and not necessarily the only or the best one! My
-confusible set contains roughly 1000 hanzi and includes everything in HSK1 to 3 and various of the higher HSK levels:
+One available hanzi grid configuration is my own so-called **"confusible" ordering**, as featured in both of the above
+previews. In this configuration, I manually attempted to group hanzi that look somewhat similar (like 牛 and 午) and are
+therefore easily confused. Having these right next to eachother in a grid enables a horizontal learning method where you
+can immediately judge a hanzi in a context of similar ones.  This is a fairly subjective ordering and not necessarily
+the only or the best one! My confusible set contains roughly 1000 hanzi and includes everything in HSK1 to 3 and various
+of the higher HSK levels:
 
 * **My confusible order hanzi grid for horizontal learning**:
     * `SVG single page (good for A1 paper) <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/confusibleorder_a1_1.svg>`_
     * `SVG page 1 (good for A4/Letter) <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/confusibleorder_a4_1.svg>`_
     * `SVG page 2 <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/confusibleorder_a4_2.svg>`_
     * `SVG page 3 <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/confusibleorder_a4_3.svg>`_
+    * `raw source <https://github.com/proycon/hanzigrid/blob/master/hanzigrid/input/hanzi_confusibles.txt>`_  (Licensed
+      under creative Commons CC-NC-BY)
 
 Alternatively, you can have grids per HSK level, either in pinyin ordering or frequency ordering, and for different
 paper/screen sizes, or grids that combine several HSK levels:
@@ -49,7 +52,18 @@ paper/screen sizes, or grids that combine several HSK levels:
     * `SVG page 4 <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/hsk1to4_pinyinorder_a4_4.svg>`_
 
 
-* **HSK1**:
+Related Initiatives
+---------------------
+
+I want to acknowledge the following sites for open work that is related and served as an inspiration for hanzigrid and
+my confusible-ordered list.
+
+* Alan Davies from http://www.hskhsk.com/ (his downloadable HSK wordlists are a used by my tool)
+* https://cnvocab.com/ , there are some nice vocabulary posters here, but they were not quite what I wanted so I started
+  hanzigrid instead.
+* `Hacking Chinese: Horizontal vocabulary learning in Chinese <https://www.hackingchinese.com/horizontal-vocabulary-learning/>`_
+* https://horizontalhanzi.com
+
 
 Hanzi Grid Tool
 ====================
@@ -81,9 +95,10 @@ Features
 Installation
 ---------------
 
-Familiarity with Python and the command line is assumed, install hanzigrid using pip as follows::
+Familiarity with Python and the command line is assumed if you want to use this tool to make your own hanzi grids,
+install hanzigrid using pip as follows::
 
- ``pip install hanzigrid``
+    pip install hanzigrid
 
 Usage
 --------
