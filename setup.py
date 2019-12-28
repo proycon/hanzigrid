@@ -7,7 +7,15 @@ import os
 from setuptools import setup
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname),'r',encoding='utf-8').read()
+    begin = False
+    data = []
+    with open(os.path.join(os.path.dirname(__file__), fname),'r',encoding='utf-8') as f:
+        for line in f:
+            if line.strip() == "Hanzi Grid Tool":
+                begin = True
+            if begin:
+                data.append(line)
+    return "".join(data)
 
 setup(
     name = "hanzigrid",
