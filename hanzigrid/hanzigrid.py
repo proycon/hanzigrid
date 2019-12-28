@@ -269,10 +269,10 @@ $(function() {{
     eof = False
     if not ROWS:
         c = svgwrite.Drawing(filename=OUTPUTPREFIX+".svg", profile="tiny")
-        html.write("<object type=\"image/svg+xml\" data=\"" + OUTPUTPREFIX + ".svg\" id=\"page1\" onload=\"initpage(1)\"></object>\n")
+        html.write("<object type=\"image/svg+xml\" data=\"" + os.path.basename(OUTPUTPREFIX) + ".svg\" id=\"page1\" onload=\"initpage(1)\"></object>\n")
     else:
         c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_1.svg", viewBox=("0 0 %d %d" % (WIDTH,HEIGHT)), profile="tiny")
-        html.write("<object type=\"image/svg+xml\" data=\"" + OUTPUTPREFIX + "_1.svg\" id=\"page1\" onload=\"initpage(1)\"></object>\n")
+        html.write("<object type=\"image/svg+xml\" data=\"" + os.path.basename(OUTPUTPREFIX) + "_1.svg\" id=\"page1\" onload=\"initpage(1)\"></object>\n")
     row = 0
     page = 1 if ROWS else 0
     while True:
@@ -285,7 +285,7 @@ $(function() {{
                 c.save()
                 c = None
             c = svgwrite.Drawing(filename=OUTPUTPREFIX+"_" + str(page) + ".svg", viewBox=("0 0 %d %d" % (WIDTH,HEIGHT)), profile="tiny")
-            html.write("<object type=\"image/svg+xml\" data=\"" + OUTPUTPREFIX + "_" + str(page) + ".svg\" id=\"page" + str(page) + "\" onload=\"initpage(" + str(page) + ")\"></object>\n")
+            html.write("<object type=\"image/svg+xml\" data=\"" + os.path.basename(OUTPUTPREFIX) + "_" + str(page) + ".svg\" id=\"page" + str(page) + "\" onload=\"initpage(" + str(page) + ")\"></object>\n")
         begin = ((page-1)*ROWS*COLS) + (row-1) * COLS
         end = begin + COLS
         for col, index in enumerate(range(begin, end)):

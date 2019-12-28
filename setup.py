@@ -19,7 +19,7 @@ def read(fname):
 
 setup(
     name = "hanzigrid",
-    version = "0.1",
+    version = "0.1.1",
     author = "Maarten van Gompel",
     author_email = "proycon@anaproy.nl",
     description = ("Generate a Chinese character grid for study"),
