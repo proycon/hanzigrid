@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#this is the shell script that produced all the output in the output directory/
+
+
 pip3 install . || echo "Unable to install. Run this in a python virtualenv!" >&2
 
 hanzigrid -a --pinyinorder --rows 14 --columns 13 -o output/hsk1_pinyinorder_a4 hsk1.txt
