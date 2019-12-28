@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 import svgwrite
 import pinyin_dec
 import unicodedata
 import json
 import argparse
+
+
+path = os.path.dirname(os.path.abspath(__file__))
 
 def strip_accents(s):
    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
@@ -20,7 +24,7 @@ def loadhsk(**kwargs):
         index = 0
         altindex = 1
     for level in range(1,7):
-        with open("HSK Official With Definitions 2012 L" + str(level) + " freqorder.txt",'r',encoding='utf-8') as f:
+        with open(os.path.join(path, "data", "HSK Official With Definitions 2012 L" + str(level) + " freqorder.txt"),'r',encoding='utf-8') as f:
             for line in f:
                 fields = line.split("\t")
                 pinyin = []
@@ -40,7 +44,7 @@ def loadhsk(**kwargs):
                     "description": fields[4],
                 }
                 for hanzi, alt, tone,singlepinyin in zip(fields[index], fields[altindex], tones, pinyin):
-                    singlepinyin = singlepinyin.strip("' ")
+                    singlepinyin = singlepinyin.lower().strip("' ")
                     if hanzi not in hskdata:
                         hskdata[hanzi] = {
                             "tone": tone,
@@ -94,6 +98,9 @@ def hanzigrid(**kwargs):
     data = []
     seen = set()
     for filename in kwargs['inputfiles']:
+        if not os.path.exists(filename) and filename[0] != '/':
+            print("File not found in current working directory, falling back to input directory...",file=sys.stderr)
+            filename = os.path.join(path,"input", filename)
         with open(filename,'r',encoding='utf-8') as f:
             for line in f:
                 for hanzi in line.strip().split("\t"):
@@ -326,7 +333,10 @@ $(function() {{
                 wordlimit = 2
 
             if WORDS and hanzi in hskdata and hskdata[hanzi]["words"]:
-                for i, word in enumerate([ w for w in hskdata[hanzi]["words"] if len(w) > 1 and len(w) <= (2 if not ALT else 2) ]):
+                words = [ w for w in hskdata[hanzi]["words"] if len(w) > 1 and len(w) <= (2 if not ALT else 2) ]
+                if kwargs['maxlevel'] > 0:
+                    words = [ w for w in words if hskwords[w]['level'] <= kwargs['maxlevel'] ]
+                for i, word in enumerate(words):
                     c.add(c.text(word, insert=(x,y+subfontsize*0.25+voffset+(subfontsize*(i+1))), font_family=FONT,font_size=subfontsize, fill="#333", stroke="#000",stroke_width=0,font_weight="normal"))
                     if i == wordlimit - 1: break
 
@@ -351,14 +361,13 @@ Info: pinyin? <input type="checkbox" id="infopinyin" name="infopinyin" /> | tran
     html.write("</body>")
     html.write("</html>")
 
-
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description="Create a hanzi learning grid", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--font', type=str,help="The font", action='store',default="sans")
     parser.add_argument('-o','--outputprefix', type=str,help="Output prefix", action='store',default="hanzigrid")
     parser.add_argument('--cellwidth',type=int,help="The width of a cell in pixels (determines resolution)", action='store',default=128)
     parser.add_argument('--columns',type=int,help="Number of columns", action='store',default=15)
-    parser.add_argument('--rows',type=int,help="Number of rows per page/image, if the number is exceeded a new image/page will be started (defaults to 0 meaning unlimited)", action='store',default=0)
+    parser.add_argument('--rows',type=int,help="Maximum number of rows per page/image, if the number is exceeded a new image/page will be started (defaults to 0 meaning unlimited)", action='store',default=0)
     parser.add_argument('--nowords',help="Don't add example words from HSK", action='store_true')
     parser.add_argument('--nolevels',help="Don't distinguish HSK levels", action='store_true')
     parser.add_argument('--notones',help="No tone colours", action='store_true')
@@ -368,11 +377,11 @@ if __name__ == '__main__':
     parser.add_argument('-t','--traditional',help="Use traditional hanzi instead of simplified", action='store_true')
     parser.add_argument('-a','--alternative',help="Show alternative hanzi (traditional/simplified)", action='store_true')
     parser.add_argument('--minlevel',type=int,help="Minimum HSK level", action='store',default=0)
+    parser.add_argument('--maxlevel',type=int,help="Maximum HSK level", action='store',default=0)
     parser.add_argument('inputfiles', nargs='+', help='A file with hanzi')
     args = parser.parse_args()
-    #args.storeconst, args.dataset, args.num, args.bar
     hanzigrid(**args.__dict__)
 
-
-
+if __name__ == '__main__':
+    main()
 
