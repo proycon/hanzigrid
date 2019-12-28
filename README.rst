@@ -38,7 +38,7 @@ paper/screen sizes, or grids that combine several HSK levels:
 * HSK2, pinyin order: `single SVG <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/hsk2_pinyinorder_a4_1.svg>`_
 * HSK3, pinyin order:
     * `SVG page 1 <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/hsk3_pinyinorder_a4_1.svg>`_
-    * `SVG page 2 <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/hsk3_pinyinorder_a4_2.svg>`_ ,
+    * `SVG page 2 <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/hsk3_pinyinorder_a4_2.svg>`_
 
 * HSK 1 to 4, level/freq order: `Single page <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/hsk1to4_a1_1.svg>`_
     * `SVG page 1 <https://raw.githubusercontent.com/proycon/hanzigrid/master/output/hsk1to4_a4_1.svg>`_
