@@ -3,10 +3,11 @@ Hanzi Grids
 
 A hanzi grid is a study grid or matrix of chinese characters along with (optionally) pinyin and/or words
 from the HSK levels. In this repository you will find various study grids, as well as the ``hanzigrid`` tool that
-generated them, and the raw input data from which they were generated. This means you can make your own hanzi grids!
+generated them, and the raw input data from which they were generated. This means you can make your own hanzi grids to
+learn mandarin chinese!
 
-A full example hanzi grid is shown below:
-
+A full example hanzi grid is shown below, the colour of the chinese characters corresponds to the tone in mandarin, and
+the background colour gives an indication of the HSK level.
 
 .. image:: https://raw.githubusercontent.com/proycon/hanzigrid/master/hanzigrid.png
     :alt: an example hanzigrid
