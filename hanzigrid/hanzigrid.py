@@ -126,6 +126,7 @@ def hanzigrid(**kwargs):
             print("NOTICE: hanzi in HSK " + str(item["level"]) + " but not in input (this is no problem): ", hanzi,file=sys.stderr)
 
 
+    OUTPUTPREFIX_STRIPPED = os.path.basename(OUTPUTPREFIX)
     html =  open(OUTPUTPREFIX+".html",'w',encoding='utf-8')
     html.write(f"""<!DOCTYPE HTML>
 <html>
@@ -175,7 +176,7 @@ def hanzigrid(**kwargs):
                 color: black;
             }}
         </style>
-        <script src="{OUTPUTPREFIX}.js"></script>
+        <script src="{OUTPUTPREFIX_STRIPPED}.js"></script>
         <script
           src="https://code.jquery.com/jquery-3.4.1.min.js"
           integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
