@@ -35,3 +35,6 @@ hanzigrid -a --pinyinorder --rows 32 --columns 36 -o output/hsk1to4_pinyinorder_
 #confusibles
 hanzigrid -a --rows 16 --columns 20 -o output/confusibleorder_a4 hanzi_confusibles.txt
 hanzigrid -a --rows 34 --columns 34 -o output/confusibleorder_a1 hanzi_confusibles.txt
+
+#narrow version for mobile
+hanzigrid -a --rows 34 --columns 8 -o output/confusibleorder_narrow hanzi_confusibles.txt
