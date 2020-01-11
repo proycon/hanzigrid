@@ -173,7 +173,10 @@ def hanzigrid(**kwargs):
                 color: #666;
             }}
             #words .hanzi {{
+                display: inline-block;
+                min-width: 100px;
                 color: black;
+                font-size: 150%;
             }}
         </style>
         <script src="{OUTPUTPREFIX_STRIPPED}.js"></script>
@@ -209,7 +212,7 @@ function showinfo(event) {{
         var words = "";
         for (j = 0; j < data[i].words.length; j++) {{
             worddata = hskwords[data[i].words[j]];
-            words += "<span class='level'>(" + worddata.level + ")</span> <span class='hanzi' onclick='showextra(" + j + "); event.stopPropagation();'>" + worddata.hanzi + "</span>";
+            words += "<span class='level' onclick='showextra(" + j + "); event.stopPropagation();'>(" + worddata.level + ")</span> <span class='hanzi' onclick='showextra(" + j + "); event.stopPropagation();'>" + worddata.hanzi + "</span>";
             var cls = "pinyin";
             if (!infopinyin) cls += " hidden";
             words += "<span class='" + cls + "' id='pinyin" + j + "'> - " + worddata.pinyin + "</span>";
