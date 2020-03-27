@@ -46,7 +46,7 @@ hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --pinyinorder --rows 32 --colum
 
 #confusibles
 hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --rows 16 --columns 20 -o output/confusibleorder_a4 hanzi_confusibles.txt
-hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --rows 34 --columns 34 -o output/confusibleorder_a1 hanzi_confusibles.txt
+hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --rows 28 --subrows 3 --columns 35 -o output/confusibleorder_a1 hanzi_confusibles.txt
 
 #narrow version for mobile
-hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --rows 34 --columns 8 -o output/confusibleorder_narrow hanzi_confusibles.txt
+hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --rows 34 --subrows 3 --columns 8 -o output/confusibleorder_narrow hanzi_confusibles.txt
