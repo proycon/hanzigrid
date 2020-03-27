@@ -92,6 +92,7 @@ def hanzigrid(**kwargs):
         5: "#000",
     }
     FONT = kwargs['font']
+    SUBFONT = kwargs['subfont']
     OUTPUTPREFIX = kwargs['outputprefix']
 
 
@@ -359,7 +360,7 @@ $(function() {{
                                 bgwidthfactor= 0.6 if ALT else 1
                                 c.add(c.rect(insert=(x,y+subfontsize*0.4+voffset+(subfontsize*i)), size=(CELLWIDTH*bgwidthfactor,subfontsize), fill=bgcolor, stroke=bgcolor,stroke_width=1))
 
-                    c.add(c.text(word, insert=(x,y+subfontsize*0.25+voffset+(subfontsize*(i+1))), font_family=FONT,font_size=subfontsize, fill="#333", stroke="#000",stroke_width=0,font_weight="normal"))
+                    c.add(c.text(word, insert=(x,y+subfontsize*0.25+voffset+(subfontsize*(i+1))), font_family=SUBFONT,font_size=subfontsize, fill="#333", stroke="#000",stroke_width=0,font_weight="normal"))
                     if i == wordlimit - 1: break
 
             if ALT and hanzi in hskdata and hskdata[hanzi]["alt"]:
@@ -387,6 +388,7 @@ Info: pinyin? <input type="checkbox" id="infopinyin" name="infopinyin" /> | tran
 def main():
     parser = argparse.ArgumentParser(description="Create a hanzi learning grid", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--font', type=str,help="The font", action='store',default="sans")
+    parser.add_argument('--subfont', type=str,help="The font", action='store',default="sans")
     parser.add_argument('-o','--outputprefix', type=str,help="Output prefix", action='store',default="hanzigrid")
     parser.add_argument('--cellwidth',type=int,help="The width of a cell in pixels (determines resolution)", action='store',default=128)
     parser.add_argument('--columns',type=int,help="Number of columns", action='store',default=15)
