@@ -310,7 +310,7 @@ $(function() {{
 
 
             fontsize = (CELLWIDTH * 0.8)
-            x = col * CELLWIDTH + (0.25*fontsize)
+            x = col * CELLWIDTH
             y = row * CELLHEIGHT -  (CELLHEIGHT-CELLWIDTH) - (0.25*fontsize)
 
             if not kwargs.get('notones'):
@@ -318,14 +318,17 @@ $(function() {{
             else:
                 color = "black"
             if not kwargs.get('nolevels'):
+                bgcolor=None
                 if item["level"] == 0:
-                    c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill="#aaa"))
-                if item["level"] == 6:
-                    c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill="#fbb"))
-                if item["level"] == 5:
-                    c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill="#ffb"))
-                if item["level"] == 4:
-                    c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill="#ddd"))
+                    bgcolor = "#aaa"
+                elif item["level"] == 6:
+                    bgcolor = "#fbb"
+                elif item["level"] == 5:
+                    bgcolor = "#ffb"
+                elif item["level"] == 4:
+                    bgcolor = "#ddd"
+                if bgcolor is not None:
+                    c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill=bgcolor))
             c.add(c.text(hanzi, insert=(x,y), font_family=FONT,font_size=fontsize, fill=color, stroke=color,stroke_width=1,id="h"+ str(index)))
             subfontsize = fontsize / 2.8
             if PINYIN and hanzi in hskdata and hskdata[hanzi]["pinyin"]:
@@ -341,11 +344,27 @@ $(function() {{
                 if kwargs['maxlevel'] > 0:
                     words = [ w for w in words if hskwords[w]['level'] <= kwargs['maxlevel'] ]
                 for i, word in enumerate(words):
+                    if not kwargs.get('nolevels'):
+                        bgcolor=None
+                        if word in hskwords:
+                            if hskwords[word]['level'] == 0:
+                                bgcolor = "#aaa"
+                            elif hskwords[word]['level'] == 6:
+                                bgcolor = "#fbb"
+                            elif hskwords[word]['level'] == 5:
+                                bgcolor = "#ffb"
+                            elif hskwords[word]['level'] == 4:
+                                bgcolor = "#ddd"
+                            if bgcolor is not None:
+                                bgwidthfactor= 0.6 if ALT else 1
+                                c.add(c.rect(insert=(x,y+subfontsize*0.4+voffset+(subfontsize*i)), size=(CELLWIDTH*bgwidthfactor,subfontsize), fill=bgcolor, stroke=bgcolor,stroke_width=1))
+
                     c.add(c.text(word, insert=(x,y+subfontsize*0.25+voffset+(subfontsize*(i+1))), font_family=FONT,font_size=subfontsize, fill="#333", stroke="#000",stroke_width=0,font_weight="normal"))
                     if i == wordlimit - 1: break
 
             if ALT and hanzi in hskdata and hskdata[hanzi]["alt"]:
-                c.add(c.text(hskdata[hanzi]['alt'], insert=(x+(CELLWIDTH-subfontsize),y+(subfontsize*0.25)+(subfontsize*2)), font_family=FONT,font_size=subfontsize, fill=color, stroke=color,stroke_width=0,font_weight="normal"))
+                altfontsize=subfontsize*1.5
+                c.add(c.text(hskdata[hanzi]['alt'], insert=(x+(CELLWIDTH-altfontsize),y+(subfontsize*0.25)+(subfontsize*2)), font_family=FONT,font_size=altfontsize, fill="#d45500", stroke=color,stroke_width=0,font_weight="normal"))
 
 
             if index == len(data)-1:
