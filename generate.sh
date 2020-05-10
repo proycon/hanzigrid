@@ -49,5 +49,8 @@ hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --subrows 3 --rows 14 --columns
 hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --subrows 3 --rows 11 --columns 14 -o output/confusibleorder_large_a4 hanzi_confusibles.txt
 hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --rows 29 --subrows 3 --columns 38 -o output/confusibleorder_a1 hanzi_confusibles.txt
 
+#confusibles pleco style
+hanzigrid --font "$FONT" --subfont "$SUBFONT" --bgcolor "grey" --tonecolor "pleco" --pinyin --rows 29 --subrows 3 --columns 38 -o output/confusibleorder_pleco_a1 hanzi_confusibles.txt
+
 #narrow version for mobile
 hanzigrid --font "$FONT" --subfont "$SUBFONT" -a --rows 34 --subrows 3 --columns 8 -o output/confusibleorder_narrow hanzi_confusibles.txt

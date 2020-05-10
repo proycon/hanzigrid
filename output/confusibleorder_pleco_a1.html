@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Hanzi Grid</title>
+        <meta name="generator" content="hanzigrid" />
+        <meta charset="utf-8" />
+        <style>
+            object {
+                margin: 0px;
+                padding: 0px;
+                width: 100%;
+                height: 100%;
+            }
+            #info {
+                position: fixed;
+                background: white;
+                display: none;
+                top: 25px;
+                left: 25px;
+                width: 90%;
+                opacity: 0.9;
+                border: 2px black solid;
+                font-size: 2em;
+            }
+            #hanzi {
+                width: 100%;
+                text-align: center;
+                background: black;
+                color: white;
+                font-weight: bold;
+                font-family: ""SimSun"", sans-serif;
+            }
+            #info .level {
+               font-size: 50%;
+               font-weight: normal;
+            }
+            #info .description {
+                font-style: italic;
+            }
+            #info .hidden {
+                visibility: hidden;
+            }
+            #words {
+                color: #666;
+            }
+            #words .hanzi {
+                display: inline-block;
+                min-width: 150px;
+                color: black;
+                font-size: 150%;
+                font-family: ""Microsoft YaHei Leight"", sans-serif;
+            }
+        </style>
+        <script src="confusibleorder_pleco_a1.js"></script>
+        <script
+          src="https://code.jquery.com/jquery-3.4.1.min.js"
+          integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+          crossorigin="anonymous"></script>
+        <script>
+function initpage(page) {
+    if (data == null) {
+        window.setTimeout(function(){initpage(page)}, 500);
+        return;
+    }
+    var i = 0;
+    for (i = 0; i < data.length; i++) {
+        var page = $('#page' + data[i].page)[0];
+        // Get the SVG document inside the Object tag
+        var svgdoc = page.contentDocument;
+        // Get the hanzi by ID
+        var hanzi = svgdoc.getElementById("h" + i);
+        if (hanzi !== null) {
+            hanzi.index = i;
+            hanzi.addEventListener("click", showinfo, false);
+        }
+    }
+};
+
+function showinfo(event) {
+        var i = event.currentTarget.index;
+        $('#hanzi').html(data[i].hanzi + " <span class='level'>(HSK" + data[i].level + ")</span>");
+        $('#pinyin').html(data[i].pinyin);
+        $('#description').html(data[i].description);
+        var words = "";
+        for (j = 0; j < data[i].words.length; j++) {
+            worddata = dictwords[data[i].words[j]];
+            words += "<span class='level' onclick='showextra(" + j + "); event.stopPropagation();'>(" + worddata.level + ")</span> <span class='hanzi' onclick='showextra(" + j + "); event.stopPropagation();'>" + worddata.hanzi + "</span>";
+            var cls = "pinyin";
+            if (!infopinyin) cls += " hidden";
+            words += "<span class='" + cls + "' id='pinyin" + j + "'> - " + worddata.pinyin + "</span>";
+            var cls = "description";
+            if (!infotranslation) cls += " hidden";
+            words += "<span class='" + cls + "' id='description" + j +"'> - " + worddata.description + "</span>";
+            words += "<br/>";
+        }
+        $('#words').html(words);
+        $("#info").show();
+};
+
+function showextra(i) {
+    $("#pinyin" + i).removeClass("hidden");
+    $("#description" + i).removeClass("hidden");
+}
+
+infopinyin=false;
+infotranslation=false;
+
+$(function() {
+    $('#infopinyin').click(function() {
+        if ($('#infopinyin').is(':checked')) {
+            infopinyin = true;
+        } else {
+            infopinyin = false;
+        }
+        if ($('#infotranslation').is(':checked')) {
+            infotranslation = true;
+        } else {
+            infotranslation = false;
+        }
+    });
+});
+    </script>
+    </head>
+    <body>
+<div id="info" onclick="$('#info').hide();">
+    <div id="hanzi">
+    </div>
+    <div id="pinyin">
+    </div>
+    <div id="description">
+    </div>
+    <div id="level">
+    </div>
+    <div id="description">
+    </div>
+    <div id="words">
+    </div>
+</div>
+<object type="image/svg+xml" data="confusibleorder_pleco_a1_1.svg" id="page1" onload="initpage(1)"></object>
+
+<div class="buttons">
+Info: pinyin? <input type="checkbox" id="infopinyin" name="infopinyin" /> | translations? <input type="checkbox" id="infotranslation" name="infotranslation" />
+</div>
+</body></html>
