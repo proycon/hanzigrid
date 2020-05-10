@@ -7,24 +7,30 @@ import pinyin_dec
 import unicodedata
 import json
 import argparse
-
+import re
 
 path = os.path.dirname(os.path.abspath(__file__))
 
 def strip_accents(s):
    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
-def loadhsk(**kwargs):
-    hskdata = {}
-    hskwords = {}
+def loadDict(**kwargs):
+    dictdata = {}
+    dictwords = {}
     if kwargs.get("traditional"):
         index = 1
         altindex = 0
     else:
         index = 0
         altindex = 1
-    for level in range(1,7):
-        with open(os.path.join(path, "data", "HSK Official With Definitions 2012 L" + str(level) + " freqorder.txt"),'r',encoding='utf-8') as f:
+    file_list = os.listdir(os.path.join(path, "data"))
+    for fn in file_list:
+        with open(os.path.join(path, "data", fn),'r',encoding='utf-8') as f:
+            try:
+                level = int(re.search("(?<=HSK Official With Definitions 2012 L)\d", fn).group())
+            except:
+                level = 0 # File is not an official HSK file so there is no hsk level
+
             for line in f:
                 fields = line.split("\t")
                 pinyin = []
@@ -37,7 +43,7 @@ def loadhsk(**kwargs):
                         begin = i+1
                 if len(tones) != len(fields[index]):
                     tones = len(fields[index]) * [5]
-                hskwords[fields[index]] = {
+                dictwords[fields[index]] = {
                     "hanzi": fields[index],
                     "pinyin": fields[3],
                     "level": level,
@@ -45,8 +51,8 @@ def loadhsk(**kwargs):
                 }
                 for hanzi, alt, tone,singlepinyin in zip(fields[index], fields[altindex], tones, pinyin):
                     singlepinyin = singlepinyin.lower().strip("' ")
-                    if hanzi not in hskdata:
-                        hskdata[hanzi] = {
+                    if hanzi not in dictdata:
+                        dictdata[hanzi] = {
                             "tone": tone,
                             "level": level,
                             "pinyin": singlepinyin.strip(),
@@ -54,19 +60,19 @@ def loadhsk(**kwargs):
                             "alt": alt if alt != hanzi else ""
                         }
                     else:
-                        if hskdata[hanzi]['tone'] == 5:
-                            hskdata[hanzi]['tone'] = tone
-                            hskdata[hanzi]['pinyin'] = singlepinyin
-                        elif tone != 5 and (hskdata[hanzi]['tone'] != tone or singlepinyin not in hskdata[hanzi]['pinyin'].split('/')):
-                            hskdata[hanzi]['tone'] = 0
-                            if singlepinyin not in hskdata[hanzi]['pinyin'].split('/'):
-                                hskdata[hanzi]['pinyin'] += "/" + singlepinyin
-                        hskdata[hanzi]['words'].append(fields[index])
-    return hskdata, hskwords
+                        if dictdata[hanzi]['tone'] == 5:
+                            dictdata[hanzi]['tone'] = tone
+                            dictdata[hanzi]['pinyin'] = singlepinyin
+                        elif tone != 5 and (dictdata[hanzi]['tone'] != tone or singlepinyin not in dictdata[hanzi]['pinyin'].split('/')):
+                            dictdata[hanzi]['tone'] = 0
+                            if singlepinyin not in dictdata[hanzi]['pinyin'].split('/'):
+                                dictdata[hanzi]['pinyin'] += "/" + singlepinyin
+                        dictdata[hanzi]['words'].append(fields[index])
+    return dictdata, dictwords
 
 
 def hanzigrid(**kwargs):
-    hskdata, hskwords = loadhsk(**kwargs)
+    dictdata, dictwords = loadDict(**kwargs)
     COLS = kwargs['columns']
     ROWS = kwargs['rows']
     SUBROWS = kwargs['subrows']
@@ -79,6 +85,8 @@ def hanzigrid(**kwargs):
     CELLWIDTH = kwargs['cellwidth']
     FONTSIZE = (CELLWIDTH * 0.8)
     SUBFONTSIZE = FONTSIZE / 2.8
+    PINYINFONTSIZE = FONTSIZE / 4
+
     if WORDS:
         CELLHEIGHT = CELLWIDTH + SUBFONTSIZE * SUBROWS
     else:
@@ -87,17 +95,49 @@ def hanzigrid(**kwargs):
     if ROWS:
         HEIGHT = ROWS * CELLHEIGHT
     TONECOLOR = {
+        "default": {
         0: "#000", #used for unknown/ambiguous tones (multiple readings)
         1: "#800",
         2: "#880",
         3: "#080",
         4: "#008",
-        5: "#000",
+        5: "#000"},
+        "pleco": {
+        0: "#000", #used for unknown/ambiguous tones (multiple readings)
+        1: "#e30000",
+        2: "#01b31c",
+        3: "#150ff0",
+        4: "#8800bf",
+        5: "#777777",
+        }}
+    BGCOLORS = {
+        'default':
+        {
+            0: None,
+            1: None,
+            2: None,
+            3: None,
+            4: '#ddd',
+            5: '#ffb',
+            6: '#f5caca',
+        },
+        'grey':
+        {
+            0: None,
+            1: None,
+            2: None,
+            3: None,
+            4: '#ddd',
+            5: '#ccc',
+            6: '#aaa',
+        }
     }
     FONT = kwargs['font']
     SUBFONT = kwargs['subfont']
     OUTPUTPREFIX = kwargs['outputprefix']
 
+    bgcolorscheme = kwargs.get('bgcolor')
+    colorscheme = kwargs.get('tonecolor')
 
     data = []
     seen = set()
@@ -114,9 +154,9 @@ def hanzigrid(**kwargs):
                             if hanzi in seen:
                                 #duplicate
                                 continue
-                            if hanzi in hskdata:
-                                if hskdata[hanzi]["level"] >= MINLEVEL:
-                                    data.append( {"hanzi": hanzi,  "tone": hskdata[hanzi]["tone"], "pinyin": hskdata[hanzi]["pinyin"], "level": hskdata[hanzi]["level"] } )
+                            if hanzi in dictdata:
+                                if dictdata[hanzi]["level"] >= MINLEVEL:
+                                    data.append( {"hanzi": hanzi,  "tone": dictdata[hanzi]["tone"], "pinyin": dictdata[hanzi]["pinyin"], "level": dictdata[hanzi]["level"] } )
                             elif not HSKONLY:
                                 data.append( {"hanzi": hanzi,  "tone": 0, "pinyin": "", "level": 0 } )
                             seen.add(hanzi)
@@ -125,9 +165,10 @@ def hanzigrid(**kwargs):
     if PINYINORDER:
         data = [ x for x in sorted(data, key=lambda x: strip_accents(x['pinyin']).lower())]
 
-    for hanzi, item in hskdata.items():
+    for hanzi, item in dictdata.items():
         if hanzi not in seen:
-            print("NOTICE: hanzi in HSK " + str(item["level"]) + " but not in input (this is no problem): ", hanzi,file=sys.stderr)
+            # print("NOTICE: hanzi in HSK " + str(item["level"]) + " but not in input (this is no problem): ", hanzi,file=sys.stderr)
+            pass
 
 
     OUTPUTPREFIX_STRIPPED = os.path.basename(OUTPUTPREFIX)
@@ -217,7 +258,7 @@ function showinfo(event) {{
         $('#description').html(data[i].description);
         var words = "";
         for (j = 0; j < data[i].words.length; j++) {{
-            worddata = hskwords[data[i].words[j]];
+            worddata = dictwords[data[i].words[j]];
             words += "<span class='level' onclick='showextra(" + j + "); event.stopPropagation();'>(" + worddata.level + ")</span> <span class='hanzi' onclick='showextra(" + j + "); event.stopPropagation();'>" + worddata.hanzi + "</span>";
             var cls = "pinyin";
             if (!infopinyin) cls += " hidden";
@@ -273,7 +314,7 @@ $(function() {{
 """)
 
     datafile =  open(OUTPUTPREFIX+".js",'w',encoding='utf-8')
-    datafile.write("hskwords = " + json.dumps(hskwords, ensure_ascii=False) + "\n")
+    datafile.write("dictwords = " + json.dumps(dictwords, ensure_ascii=False) + "\n")
     datafile.write("data = [")
 
     eof = False
@@ -301,16 +342,16 @@ $(function() {{
         for col, index in enumerate(range(begin, end)):
             item = data[index]
             hanzi = item['hanzi']
-            if hanzi in hskdata:
-                if hskdata[hanzi]["words"]:
-                    item['words'] = hskdata[hanzi]['words']
-                if hskdata[hanzi]["alt"]:
-                    item['alt'] = hskdata[hanzi]['alt']
+            if hanzi in dictdata:
+                if dictdata[hanzi]["words"]:
+                    item['words'] = dictdata[hanzi]['words']
+                if dictdata[hanzi]["alt"]:
+                    item['alt'] = dictdata[hanzi]['alt']
             item['seqnr'] = index
             item['row'] = row
             item['page'] = page
             print(json.dumps(item,ensure_ascii=False) + ",",file=datafile)
-            if hanzi in hskdata:
+            if hanzi in dictdata:
                 if 'words' in item: del item['words']
                 if 'alt' in item: del item['alt']
 
@@ -319,44 +360,30 @@ $(function() {{
             y = row * CELLHEIGHT -  (CELLHEIGHT-CELLWIDTH) - (0.25*FONTSIZE)
 
             if not kwargs.get('notones'):
-                color = TONECOLOR[item["tone"]]
+                color = TONECOLOR[colorscheme][item["tone"]]
             else:
                 color = "black"
             if not kwargs.get('nolevels'):
-                bgcolor=None
-                if item["level"] == 0:
-                    color = "#aaa" #override color
-                elif item["level"] == 6:
-                    bgcolor = "#f5caca"
-                elif item["level"] == 5:
-                    bgcolor = "#ffb"
-                elif item["level"] == 4:
-                    bgcolor = "#ddd"
+                bgcolor = BGCOLORS[bgcolorscheme][item["level"]] 
                 if bgcolor is not None:
                     c.add(c.rect(insert=(x,(row-1)*CELLHEIGHT), size=(CELLWIDTH,CELLHEIGHT), fill=bgcolor))
             c.add(c.text(hanzi, insert=(x,y), font_family=FONT,font_size=FONTSIZE, fill=color, stroke=color,stroke_width=1,id="h"+ str(index)))
-            if PINYIN and hanzi in hskdata and hskdata[hanzi]["pinyin"]:
-                c.add(c.text(hskdata[hanzi]["pinyin"], insert=(x,y+(SUBFONTSIZE*0.25)+SUBFONTSIZE), font_family=FONT,font_size=SUBFONTSIZE, fill=color, stroke=color,stroke_width=0,font_weight="normal"))
+            if PINYIN and hanzi in dictdata and dictdata[hanzi]["pinyin"]:
+                c.add(c.text(dictdata[hanzi]["pinyin"], insert=(x,y+(PINYINFONTSIZE*0.25)+PINYINFONTSIZE), font_family=FONT,font_size=PINYINFONTSIZE, fill=color, stroke=color,stroke_width=0,font_weight="normal"))
                 voffset = SUBFONTSIZE
                 wordlimit = SUBROWS-1
             else:
                 voffset = 0
                 wordlimit = SUBROWS
 
-            if WORDS and hanzi in hskdata and hskdata[hanzi]["words"]:
-                words = [ w for w in hskdata[hanzi]["words"] if len(w) > 1 and len(w) <= (3 if not ALT else 2) ]
+            if WORDS and hanzi in dictdata and dictdata[hanzi]["words"]:
+                words = [ w for w in dictdata[hanzi]["words"] if len(w) > 1 and len(w) <= (3 if not ALT else 2) ]
                 if kwargs['maxlevel'] > 0:
-                    words = [ w for w in words if hskwords[w]['level'] <= kwargs['maxlevel'] ]
+                    words = [ w for w in words if dictwords[w]['level'] <= kwargs['maxlevel'] ]
                 for i, word in enumerate(words):
                     if not kwargs.get('nolevels'):
-                        bgcolor=None
-                        if word in hskwords:
-                            if hskwords[word]['level'] == 6:
-                                bgcolor = "#f5caca"
-                            elif hskwords[word]['level'] == 5:
-                                bgcolor = "#ffb"
-                            elif hskwords[word]['level'] == 4:
-                                bgcolor = "#ddd"
+                        if word in dictwords:
+                            bgcolor = BGCOLORS[bgcolorscheme][dictwords[word]['level']] 
                             if bgcolor is not None:
                                 bgwidthfactor= 0.6 if ALT else 1
                                 c.add(c.rect(insert=(x,y+SUBFONTSIZE*0.4+voffset+(SUBFONTSIZE*i)), size=(CELLWIDTH*bgwidthfactor,SUBFONTSIZE), fill=bgcolor, stroke=bgcolor,stroke_width=1))
@@ -364,9 +391,9 @@ $(function() {{
                     c.add(c.text(word, insert=(x,y+SUBFONTSIZE*0.25+voffset+(SUBFONTSIZE*(i+1))), font_family=SUBFONT,font_size=SUBFONTSIZE, fill="#333", stroke="#000",stroke_width=0,font_weight="normal"))
                     if i == wordlimit - 1: break
 
-            if ALT and hanzi in hskdata and hskdata[hanzi]["alt"]:
+            if ALT and hanzi in dictdata and dictdata[hanzi]["alt"]:
                 altfontsize=SUBFONTSIZE*1.5
-                c.add(c.text(hskdata[hanzi]['alt'], insert=(x+(CELLWIDTH-altfontsize),y+(SUBFONTSIZE*0.25)+(SUBFONTSIZE*1.05)), font_family=FONT,font_size=altfontsize, fill="#d45500", stroke=color,stroke_width=0,font_weight="normal"))
+                c.add(c.text(dictdata[hanzi]['alt'], insert=(x+(CELLWIDTH-altfontsize),y+(SUBFONTSIZE*0.25)+(SUBFONTSIZE*1.05)), font_family=FONT,font_size=altfontsize, fill="#d45500", stroke=color,stroke_width=0,font_weight="normal"))
 
 
             if index == len(data)-1:
@@ -391,6 +418,8 @@ def main():
     parser.add_argument('--font', type=str,help="The font", action='store',default="sans")
     parser.add_argument('--subfont', type=str,help="The font", action='store',default="sans")
     parser.add_argument('-o','--outputprefix', type=str,help="Output prefix", action='store',default="hanzigrid")
+    parser.add_argument('--tonecolor', type=str ,help="Choose tonecolor: ['default', 'pleco']", action='store', default='default')
+    parser.add_argument('--bgcolor', type=str, help="Choose background: ['default', 'grey']", action='store', default='default')
     parser.add_argument('--cellwidth',type=int,help="The width of a cell in pixels (determines resolution)", action='store',default=128)
     parser.add_argument('--columns',type=int,help="Number of columns", action='store',default=15)
     parser.add_argument('--rows',type=int,help="Maximum number of rows per page/image, if the number is exceeded a new image/page will be started (defaults to 0 meaning unlimited)", action='store',default=0)
